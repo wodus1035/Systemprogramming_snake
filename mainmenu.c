@@ -3,7 +3,7 @@
 main() {
      
     WINDOW *w;
-    char list[5] = { "Main Menu", "Start", "Score Board", "nn", "Exit" };
+    char list[5][10] = { "Main Menu", "Start", "Score Board", "nn", "Exit" };
     char item[7];
     int ch, i = 0;
     //int width = 20;
@@ -24,11 +24,10 @@ main() {
  
     wrefresh( w ); // update the terminal screen
  
-    curs_set( 0 ); // hide the default screen cursor.
     i = 0;
     noecho(); // disable echoing of characters on the screen
     keypad( w, TRUE ); // enable keyboard input for the window.
-    //curs_set( 0 ); // hide the default screen cursor.
+    curs_set( 0 ); // hide the default screen cursor.
      
        // get the input
     while(( ch = wgetch(w)) != 'q'){ 
