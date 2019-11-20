@@ -183,7 +183,6 @@ void moveSnake()
     //장애물에 닿으면 게임 종료
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == WALL_CHAR) {
         showLoose();
-        getch();
     }
     
     
