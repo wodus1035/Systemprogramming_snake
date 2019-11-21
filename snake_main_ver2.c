@@ -41,15 +41,20 @@ void startGame();
 
 
 //s:main menu
-int select_ = 1;
-int selection= 0;
-int c;
+/*int select_=1;
+  int selection=0;
+  int c;*/
 
 int startx;
 int starty;
 int max_x;
 int max_y;
+char *pictur[] = {
 
+    "OOOO\n"
+        "OOOO\n"
+        "OOOO\n"
+};
 char *menus[] = {
     "START",
     "menu1",
@@ -65,22 +70,12 @@ char *title[] = {
     "    #####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n"
 };
 
-WINDOW *menu_menus, *menu_pictur, *menu_title;
+WINDOW *menu_menus, *menu_title;
+WINDOW *menu_pictur;
 
 int n_menus = sizeof(menus) / sizeof(char *);
-int menu_menus_startx;
-int menu_menus_starty;
-int menu_menus_max_x;
-int menu_menus_max_y;
-int menu_pictur_startx;
-int menu_pictur_starty;
-int menu_pictur_max_x;
-int menu_pictur_max_y;
 int n_title = sizeof(title) / sizeof(char *);
-int menu_title_startx;
-int menu_title_starty;
-int menu_title_max_x;
-int menu_title_max_y;
+int n_pictur = sizeof(pictur)/ sizeof(char *);
 
 
 void _init_ncurses();
@@ -91,64 +86,76 @@ void _imp_menu_pictur(WINDOW *menu_pictur, int select_);
 void _imp_menu_title(WINDOW *menu_title, int select_);
 
 
-void _init_main_menu(){
+/*void _init_main_menu(){
+  _init_menu_menus();
+//  _init_menu_pictur();
+_init_menu_title();
+_imp_menu_menus(menu_menus, select_);
+//  _imp_menu_pictur(menu_pictur, select_);
+_imp_menu_title(menu_title, select_);
+}*/
+
+void _key_selection(){
+    int select_ =1;
+    int selection =0;
+    int c;
     _init_menu_menus();
-    //_init_menu_pictur();
+    _init_menu_pictur();
     _init_menu_title();
     _imp_menu_menus(menu_menus, select_);
     _imp_menu_pictur(menu_pictur, select_);
     _imp_menu_title(menu_title, select_);
-}
-
-void _key_selection(){
-    while(1)    {
-        c = wgetch(menu_menus);
-        switch(c)
-        {    case KEY_UP:
-            if(select_ == 1)
-                select_ = n_menus;
-            else
-                --select_;
-            break;
-            case KEY_DOWN:
-            if(select_ == n_menus)
-                select_ = 1;
-            else
-                ++select_;
-            break;
-            case 10:
-            selection = select_;
-            break;
-            default:
-            refresh();
-            break;
+        while(1)    {
+            c = wgetch(menu_menus);
+            switch(c)
+            {    case KEY_UP:
+                if(select_ == 1)
+                    select_ = n_menus;
+                else
+                    --select_;
+                break;
+                case KEY_DOWN:
+                if(select_ == n_menus)
+                    select_ = 1;
+                else
+                    ++select_;
+                break;
+                case 10:
+                selection = select_;
+                break;
+                default:
+                refresh();
+                break;
+            }
+            _imp_menu_menus(menu_menus, select_);
+            if(selection != 0){
+                if(selection == 1)
+                    startGame();
+            
+                if(selection == 2){///////////////////////
+                    endwin();
+                    exit(0);/////////////////
+                }
+                // break;/////////////////////////////////////
         }
-        _imp_menu_menus(menu_menus, select_);
-        if(selection != 0)
-            if(selection == 1)
-                startGame();
-        break;
-    }
-}
 
+}}
 
 void _init_menu_menus(){
 
-    menu_menus = newwin(80, 150, 10, 120);
+    menu_menus = newwin(row, col, row/5, col*2/3);/////////////////////////////
     keypad(menu_menus, TRUE);
     refresh();
 }
 
-/*
+
 void _init_menu_pictur(){
-    menu_pictur = newwin(80, 120, 10, 0);
-    keypad(menu_pictur, TRUE);
+    menu_pictur = newwin(row, col*2/3, row/5, 0);////////////////////////////
     refresh();
-}*/
+}
 
 void _init_menu_title(){
-    menu_title = newwin(10, 300, 0, 0);
-    keypad(menu_title, TRUE);
+    menu_title = newwin(row/5, col, 0, 0);////////////////////////////////////
     refresh();
 }
 
@@ -179,7 +186,7 @@ void _imp_menu_pictur(WINDOW *menu_pictur, int select_)
     x = 2;
     y = 2;
     box(menu_pictur, 0, 0);
-    /*
+
     for(i = 0; i < n_pictur; ++i){
         if(select_ == i + 1){
             mvwprintw(menu_pictur, y, x, "%s", pictur[i]);
@@ -188,7 +195,7 @@ void _imp_menu_pictur(WINDOW *menu_pictur, int select_)
             mvwprintw(menu_pictur, y, x, "%s", pictur[i]);
         ++y;
     }
-     */
+
     wrefresh(menu_pictur);
 }
 void _imp_menu_title(WINDOW *menu_title, int select_)
@@ -222,21 +229,21 @@ void initGame()
         user_snake[i].x = -1;
         user_snake[i].y = -1;
     }
-    
+
     initscr();
-    
+
     getmaxyx(stdscr, row, col); //화면의 크기 설정 (stdscr : 표준화면 크기 )
     noecho();
     cbreak();                 //interrupt 와 flow control key를 제외하고는 입력자료에 어떠한 작용도 x
     curs_set(0);              //curser의 크기 조정 (0에 가까울 수록 커서가 안보임)
     start_color();            /* Start color */
     init_pair(1, COLOR_RED, COLOR_BLACK);   // parameter 1 : color pair
-                                        //parameter 2 : word color, 3: block color
+    //parameter 2 : word color, 3: block color
     attron(A_BOLD); // word effect
     //color_set(1, NULL);
 
     clear(); // screen cloear
-    
+
     srand(time(NULL));
 }
 
@@ -263,25 +270,27 @@ void createSnake()
 }
 
 
-void drawMap()
+void drawMap()/////////////////////////////////////////////////////////////////
 {
+
+    addchstr("\t\tstage:");
     //테두리 벽 생성
     for(int i = 0; i < row; i++) {
-        mvaddch(i, 0, WALL_CHAR);
-        mvaddch(i, col-1, WALL_CHAR);
+        mvaddch(i+1, 0, WALL_CHAR);
+        mvaddch(i+1, col-1, WALL_CHAR);
     }
-    
+
     for(int i = 1; i < col-1; i++) {
-        mvaddch(0, i, WALL_CHAR);
+        mvaddch(1, i, WALL_CHAR);
         mvaddch(row-1, i, WALL_CHAR);
     }
-    
+
     //맵 안에 장애물 생성
     for (int i = 65; i < 100; i++) {
         mvaddch(row/4, i, WALL_CHAR);
         mvaddch((row/4)*3, i, WALL_CHAR);
     }
-    
+
     //왼쪽 상단 사각형 장애물
     for (int i = 15; i < 25; i++) {
         mvaddch(row/6, i, WALL_CHAR);   //(y,x,char)
@@ -299,15 +308,15 @@ void drawMap()
 void FoodPosition()
 {
     int x,y;
-    
+
     x = rand()%col;
     y = rand()%row;
-    
+
     while((mvinch(y, x) & A_CHARTEXT) == WALL_CHAR) {
         x = rand()%col;
         y = rand()%row;
     }
-    
+
     food.x = x;
     food.y = y;
 }
@@ -331,7 +340,7 @@ void snakeHeadMove()
 {
     SnakeBody head = user_snake[0];
     snakeMove(user_snake);
-    
+
     switch (user_snake_dir) {
         case UP:
             head.y--;
@@ -354,23 +363,23 @@ void moveSnake()
 {
     snakeHeadMove();
     //check();
-    
+
     //장애물에 닿으면 게임 종료
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == WALL_CHAR) {
         showLoose();
     }
-    
-    
+
+
     mvaddch(user_snake[0].y, user_snake[0].x, SNAKE_CHAR);
-    
-    
+
+
     if(user_snake[0].x == food.x && user_snake[0].y == food.y) {
         user_snake_length++;
         FoodPosition();
     }
-    
+
     //컴퓨터 뱀에 닿으면 종료
-    
+
 }
 
 void setDirection(char c)
@@ -396,9 +405,9 @@ void showLoose() {
     clear();
     mvprintw(row/2, col/2-strlen(LOST_MSG)/2, LOST_MSG);
     refresh();
-    
-    sleep(5);
-    
+
+    sleep(1);
+
     //수정::main 화면부터 다시 실행
     endwin();
     exit(0);
@@ -426,7 +435,7 @@ void startGame()
     createSnake();
     FoodPosition();
     refresh();
-    
+
     char key;
     while(1) {
         timeout(50); //70ms 동안 getch() block시키고 읽을 것이 없으면 return -1을 하고 getch() 종료
@@ -449,13 +458,14 @@ int main()
     initGame();
 
     //s:main menu
-    _init_main_menu();
+    /*_init_main_menu();*/
     _key_selection();
-    
+    clrtoeol();
+
     //e:main menu
-    
-    
-    
+
+
+
     return 0;
 }
 
