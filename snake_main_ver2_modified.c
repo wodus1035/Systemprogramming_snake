@@ -167,7 +167,7 @@ void _key_selection(){
     int selection =0;
     int c;
     _init_menu_menus();
-    _init_menu_pictur();
+    //_init_menu_pictur();
     _init_menu_title();
     _imp_menu_menus(menu_menus, select_);
     _imp_menu_pictur(menu_pictur, select_);
@@ -203,9 +203,7 @@ void _key_selection(){
                     endwin();
                     exit(0);/////////////////
                 }
-                // break;/////////////////////////////////////
         }
-
 }}
 
 void _init_menu_menus(){
