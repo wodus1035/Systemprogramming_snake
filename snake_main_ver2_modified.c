@@ -5,6 +5,7 @@
 #include <curses.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <pthread.h>
 
 #define UP 1
 #define DOWN 2
@@ -16,7 +17,7 @@
 #define SNAKE_LENGTH 20
 #define LOST_MSG "LOOSE"
 #define BULLEN_CHAR '>'
-#define BULLEN_STAGE 10
+#define BULLEN_MAX_NUM 10
 
 //snake의 body 좌표 구조체
 typedef struct SnakeBody_{
@@ -36,7 +37,7 @@ typedef struct Bullen{	//Bullen coordinate
 
 SnakeBody user_snake[SNAKE_LENGTH];
 Food food;
-Bullen bullen[BULLEN_STAGE];
+Bullen bullen[BULLEN_MAX_NUM];
 
 int user_snake_dir;     //user snake's direction
 int row, col;
@@ -50,59 +51,81 @@ void startGame();
 
 //s: bullen configuration
 
-int move_time = 5000;
-int cnt=0;
+int move_time = 50;
+int bullen_stage=3;
 
-int bullen_position(){ 	//bullen_postion set_up
+void bullen_position(){ 	//bullen_postion set_up
 
-    int x,y;
-
-    x = 1;
-    y = rand()%row;
-
-    while((mvinch(y, x) & A_CHARTEXT) == WALL_CHAR) {
-	x = 1;
-    	y = rand()%row;
+    int y;
+    
+    for(int i = 0; i < bullen_stage; i++) {
+        bullen[i].x = 2;  //벽 넘어서 생성
+        
+        y = rand()%row;
+        while((mvinch(y, 2) & A_CHARTEXT) == WALL_CHAR || y == 0)
+            y = rand()%row;
+        bullen[i].y = y;
     }
-
-    	bullen[cnt].x = 1;
-        bullen[cnt].y = rand()%row;
-	//cnt++;
-	if(cnt == BULLEN_STAGE) cnt--;
-	else cnt++;
+    
+    //bullen[cnt].x = 2;  //벽 넘어서 생성
+    //bullen[cnt].y = rand()%row;
+	
+    if(bullen_stage == BULLEN_MAX_NUM) {
+        //show your win
+    }
+    else {
+        bullen_stage++; //총알 수 증가
+        move_time -= 5;//속도 향상 시키기
+        set_ticker(move_time);
+    }
 	
 }
 
 void bullen_position_set(){
-	for(int i=0;i<BULLEN_STAGE;i++)bullen_position();
+	//for(int i=0;i<bullen_stage;i++)
+        bullen_position();
 }
 
 void draw_bullen(){	//Bullen draw
-//	int count=0;
-	for(int i=0;i<BULLEN_STAGE;i++){
-	mvaddch(bullen[i].y,bullen[i].x,BULLEN_CHAR);
-//	count++;
+	for(int i = 0; i < bullen_stage; i++){
+        mvaddch(bullen[i].y,bullen[i].x,BULLEN_CHAR);
 	}
 }
 
 void bullen_move(){	//buelln move
-	for(int i=0;i<BULLEN_STAGE;i++){
-		bullen[i].x++;
-	}
+    for(int i = 0; i < bullen_stage; i++) {
+        if(bullen[i].x < col-2) {   //오른쪽 끝에 도달하지 않았다면 다음 위치로 이동
+            bullen[i].x++;
+        }
+        else { //오른쪽 끝에 도달했다면
+            //총알 제거
+            for(int i=0;i<bullen_stage;i++) {
+                mvaddch(bullen[i].y,bullen[i].x, ' ');
+                bullen[i].y = -1;
+                bullen[i].x = -1;
+            }
+            
+            //새로운 총알 생성
+            bullen_position_set();
+            //break;
+            //return;
+        }
+        draw_bullen();
+
+    }
 }
 
 void bullen_hit(){		//if bullen hit snake then showloose
 	
-	for(int i=0;i<SNAKE_LENGTH;i++){
+	for(int i = 0; i < SNAKE_LENGTH; i++){
 		if((mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == BULLEN_CHAR) {
-                        showLoose();
+            showLoose();
 		}
 	}
-
+     
 }
 
-
-//s: bullen configuration
+//e: bullen configuration
 
 
 
@@ -145,7 +168,7 @@ int n_title = sizeof(title) / sizeof(char *);
 int n_pictur = sizeof(pictur)/ sizeof(char *);
 
 
-void _init_ncurses();
+//void _init_ncurses();
 void _init_menu_menus();
 void _init_menu_title();
 void _imp_menu_menus(WINDOW *menu_menus, int select_);
@@ -338,16 +361,16 @@ void createSnake()
 void drawMap()/////////////////////////////////////////////////////////////////
 {
 
-    addchstr("\t\tstage:");
+    //addchstr("\t\tstage:");
     //테두리 벽 생성
     for(int i = 0; i < row; i++) {
-        mvaddch(i+1, 0, WALL_CHAR);
-        mvaddch(i+1, col-1, WALL_CHAR);
+        mvaddch(i-1, 0, WALL_CHAR);
+        mvaddch(i-1, col-1, WALL_CHAR);
     }
 
     for(int i = 1; i < col-1; i++) {
-        mvaddch(1, i, WALL_CHAR);
-        mvaddch(row-1, i, WALL_CHAR);
+        mvaddch(1, i-1, WALL_CHAR);
+        mvaddch(row-1, i-1, WALL_CHAR);
     }
 
     //맵 안에 장애물 생성
@@ -433,6 +456,11 @@ void moveSnake()
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == WALL_CHAR) {
         showLoose();
     }
+    
+    //총알에 닿으면 종료
+    if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == BULLEN_CHAR) {
+        showLoose();
+    }
 
 
     mvaddch(user_snake[0].y, user_snake[0].x, SNAKE_CHAR);
@@ -505,8 +533,8 @@ void startGame()
     char key;
     while(1) {
         timeout(50); //70ms 동안 getch() block시키고 읽을 것이 없으면 return -1을 하고 getch() 종료
-	bullen_hit();
-	key = getch();
+        bullen_hit();
+        key = getch();
         setDirection(key);
         clear();
         drawMap();
@@ -515,7 +543,7 @@ void startGame()
         createSnake();
         drawFood();
         draw_bullen();
-	bullen_move();
+        
 
         refresh();
     }
@@ -544,7 +572,8 @@ int set_ticker(int n_msecs)
 int main()
 {
     signal(SIGINT, sig_func);  //for test
-    signal(SIGALRM, bullen_position_set);            /*SIGALRM을 받으면 draw_bullen를 호출*/
+    //signal(SIGALRM, SIG_IGN);   //test
+    signal(SIGALRM, bullen_move);            /*SIGALRM을 받으면 draw_bullen를 호출*/
     
     if(set_ticker(move_time) == -1)      /*timer설정*/
     	perror("set_ticker");
