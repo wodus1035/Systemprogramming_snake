@@ -42,6 +42,8 @@ Bullen bullen[BULLEN_MAX_NUM];
 int user_snake_dir;     //user snake's direction
 int row, col;
 int user_snake_length;
+int score = 0;
+
 
 void showLoose(void);
 void check(void);
@@ -105,6 +107,8 @@ void bullen_move(){	//buelln move
                 bullen[i].x = -1;
             }
             
+            score = score + 100;//score///////////////////for///////bullen
+   printw("score: %d", score); 
             //새로운 총알 생성
             bullen_position_set();
             //break;
@@ -360,8 +364,10 @@ void createSnake()
 
 void drawMap()/////////////////////////////////////////////////////////////////
 {
-
-    //addchstr("\t\tstage:");
+    for(int i=0; i<row/2; i++) {
+        addch(' ');
+    }
+    printw("score : %d", score);
     //테두리 벽 생성
     for(int i = 0; i < row; i++) {
         mvaddch(i-1, 0, WALL_CHAR);
@@ -413,6 +419,7 @@ void FoodPosition()
 void drawFood()
 {
     mvaddch(food.y, food.x, FOOD_CHAR);
+    score = score + 1;
 }
 
 
@@ -583,7 +590,7 @@ int main()
     //s:main menu
     /*_init_main_menu();*/
     _key_selection();
-    clrtoeol();
+//    clrtoeol();
 
     //e:main menu
 
