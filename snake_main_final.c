@@ -18,7 +18,7 @@
 #define LOST_MSG "LOOSE"
 #define LEFT_BULLEN_CHAR '>'
 #define RIGHT_BULLEN_CHAR '<'
-#define BULLEN_MAX_NUM 10
+#define MAX_STAGE 10
 #define FOOD_MAX 3
 
 //snake의 body 좌표 구조체
@@ -39,8 +39,8 @@ typedef struct Bullen{	//Bullen coordinate
 
 SnakeBody user_snake[SNAKE_LENGTH];
 Food food[FOOD_MAX];
-Bullen left_bullen[BULLEN_MAX_NUM];
-Bullen right_bullen[BULLEN_MAX_NUM];
+Bullen left_bullen[MAX_STAGE];
+Bullen right_bullen[MAX_STAGE];
 
 
 int user_snake_dir;     //user snake's direction
@@ -82,15 +82,11 @@ void bullen_position(){ 	//bullen_postion set_up
         right_bullen[i].y = y;
     }
 	
-    if(bullen_stage == BULLEN_MAX_NUM) {
-        //show your win
-    }
-    else {
+    if(bullen_stage < MAX_STAGE) {
         bullen_stage++; //총알 수 증가
         move_time -= 5;//속도 향상 시키기
         set_ticker(move_time);
     }
-	
 }
 
 void bullen_position_set(){
