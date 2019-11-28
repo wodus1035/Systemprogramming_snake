@@ -479,9 +479,12 @@ void moveSnake()
     mvaddch(user_snake[0].y, user_snake[0].x, SNAKE_CHAR);
 
 
+  for(int i=0;i<FOOD_MAX;i++){
     if(user_snake[0].x == food[i].x && user_snake[0].y == food[i].y) {
         user_snake_length++;
+	score+=1000;
     }
+  }
 
     //컴퓨터 뱀에 닿으면 종료
 
