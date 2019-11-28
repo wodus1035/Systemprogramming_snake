@@ -16,8 +16,8 @@
 #define WALL_CHAR '*'
 #define SNAKE_LENGTH 20
 #define LOST_MSG "LOOSE"
-#define LEFT_BULLEN_CHAR '>'
-#define RIGHT_BULLEN_CHAR '<'
+#define LEFT_BULLET_CHAR '>'
+#define RIGHT_BULLET_CHAR '<'
 #define MAX_STAGE 10
 #define FOOD_MAX 3
 
@@ -32,15 +32,15 @@ typedef struct Food_ {
     int y;
 } Food;
 
-typedef struct Bullen{	//Bullen coordinate
+typedef struct Bullet{	//Bullet coordinate
 	int x;
 	int y;
-}Bullen;
+}Bullet;
 
 SnakeBody user_snake[SNAKE_LENGTH];
 Food food[FOOD_MAX];
-Bullen left_bullen[MAX_STAGE];
-Bullen right_bullen[MAX_STAGE];
+Bullet left_Bullet[MAX_STAGE];
+Bullet right_Bullet[MAX_STAGE];
 
 
 int user_snake_dir;     //user snake's direction
@@ -55,93 +55,93 @@ void startGame();
 
 
 
-//s: bullen configuration
+//s: Bullet configuration
 
 int move_time = 80;
-int bullen_stage = 1;
+int Bullet_stage = 1;
 
-void bullen_position(){ 	//bullen_postion set_up
+void bullet_Position(){ 	//Bullet_postion set_up
     int y;
     
-    for(int i = 0; i < bullen_stage; i++) {
-        left_bullen[i].x = 2;  //벽 넘어서 생성
-        right_bullen[i].x = col-2;
+    for(int i = 0; i < Bullet_stage; i++) {
+        left_Bullet[i].x = 2;  //벽 넘어서 생성
+        right_Bullet[i].x = col-2;
         
-        //left bullen
+        //left Bullet
         y = rand()%row;
-        while((mvinch(y, left_bullen[i].x) & A_CHARTEXT) == WALL_CHAR || y == 0)
+        while((mvinch(y, left_Bullet[i].x) & A_CHARTEXT) == WALL_CHAR || y == 0)
             y = rand()%row;
         
-        left_bullen[i].y = y;
+        left_Bullet[i].y = y;
         
-        //right bullen
+        //right Bullet
         y = rand()%row;
-        while((mvinch(y, right_bullen[i].x) & A_CHARTEXT) == WALL_CHAR || y == 0)
+        while((mvinch(y, right_Bullet[i].x) & A_CHARTEXT) == WALL_CHAR || y == 0)
             y = rand()%row;
         
-        right_bullen[i].y = y;
+        right_Bullet[i].y = y;
     }
 	
-    if(bullen_stage < MAX_STAGE) {
-        bullen_stage++; //총알 수 증가
+    if(Bullet_stage < MAX_STAGE) {
+        Bullet_stage++; //총알 수 증가
         move_time -= 5;//속도 향상 시키기
         set_ticker(move_time);
     }
 }
 
-void bullen_position_set(){
-	//for(int i=0;i<bullen_stage;i++)
-        bullen_position();
+void bullet_Position_set(){
+	//for(int i=0;i<Bullet_stage;i++)
+        bullet_Position();
 }
 
-void draw_bullen(){	//left_bullen draw
-	for(int i = 0; i < bullen_stage; i++){
-        if(left_bullen[i].y == 0) left_bullen[i].y+=2;
-        if(right_bullen[i].y == 0) right_bullen[i].y+=2;
+void draw_Bullet(){	//left_Bullet draw
+	for(int i = 0; i < Bullet_stage; i++){
+        if(left_Bullet[i].y == 0) left_Bullet[i].y+=2;
+        if(right_Bullet[i].y == 0) right_Bullet[i].y+=2;
         
-        mvaddch(left_bullen[i].y,left_bullen[i].x,LEFT_BULLEN_CHAR);
-        mvaddch(right_bullen[i].y,right_bullen[i].x,RIGHT_BULLEN_CHAR);
+        mvaddch(left_Bullet[i].y,left_Bullet[i].x,LEFT_BULLET_CHAR);
+        mvaddch(right_Bullet[i].y,right_Bullet[i].x,RIGHT_BULLET_CHAR);
 	}
 }
 
-void bullen_move(){	//buelln move
-    for(int i = 0; i < bullen_stage; i++) {
-        if(left_bullen[i].x < col-2) {   //끝에 도달하지 않았다면 다음 위치로 이동
-            left_bullen[i].x++;
-            right_bullen[i].x--;
+void bullet_move(){	//buelln move
+    for(int i = 0; i < Bullet_stage; i++) {
+        if(left_Bullet[i].x < col-2) {   //끝에 도달하지 않았다면 다음 위치로 이동
+            left_Bullet[i].x++;
+            right_Bullet[i].x--;
         }
         else { //끝에 도달했다면
             //총알 제거
-            for(int i=0;i<bullen_stage;i++) {
-                mvaddch(left_bullen[i].y,left_bullen[i].x, ' ');
-                mvaddch(right_bullen[i].y,right_bullen[i].x, ' ');
+            for(int i=0;i<Bullet_stage;i++) {
+                mvaddch(left_Bullet[i].y,left_Bullet[i].x, ' ');
+                mvaddch(right_Bullet[i].y,right_Bullet[i].x, ' ');
 
-                left_bullen[i].y = -1;
-                left_bullen[i].x = -1;
-                right_bullen[i].y = -1;
-                right_bullen[i].x = -1;
+                left_Bullet[i].y = -1;
+                left_Bullet[i].x = -1;
+                right_Bullet[i].y = -1;
+                right_Bullet[i].x = -1;
             }
             
-            score = score + 100;//score///////////////////for///////bullen
+            score = score + 100;//score///////////////////for///////Bullet
             printw("score: %d", score);
             
             //새로운 총알 생성
-            bullen_position_set();
+            bullet_Position_set();
         }
-        draw_bullen();
+        draw_Bullet();
 
     }
 }
 
-void bullen_hit(){		//if bullen hit snake then showloose
+void Bullet_hit(){		//if Bullet hit snake then showloose
 	
 	for(int i = 0; i < SNAKE_LENGTH; i++){
-		if((mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == LEFT_BULLEN_CHAR || (mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == RIGHT_BULLEN_CHAR )
+		if((mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == LEFT_BULLET_CHAR || (mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == RIGHT_BULLET_CHAR )
             showLoose();
 	}
 }
 
-//e: bullen configuration
+//e: Bullet configuration
 
 
 //s:main menu
@@ -467,10 +467,9 @@ void moveSnake()
     }
     
     //총알에 닿으면 종료
-    if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == LEFT_BULLEN_CHAR || (mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == RIGHT_BULLEN_CHAR) {
+    if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == LEFT_BULLET_CHAR || (mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == RIGHT_BULLET_CHAR) {
         showLoose();
     }
-
 
     mvaddch(user_snake[0].y, user_snake[0].x, SNAKE_CHAR);
 
@@ -481,9 +480,6 @@ void moveSnake()
 	score+=1000;
     }
   }
-
-    //컴퓨터 뱀에 닿으면 종료
-
 }
 
 void setDirection(char c)
@@ -512,18 +508,18 @@ void showLoose() {
 
     sleep(5);
 
-    bullen_stage = 1;
+    Bullet_stage = 1;
     score = 0;
     move_time = 80;
     //수정::main 화면부터 다시 실행
-    for(int i=0; i<bullen_stage; i++) {
-        mvaddch(left_bullen[i].y, left_bullen[i].x, ' ');
-        mvaddch(right_bullen[i].y, right_bullen[i].x, ' ');
+    for(int i=0; i<Bullet_stage; i++) {
+        mvaddch(left_Bullet[i].y, left_Bullet[i].x, ' ');
+        mvaddch(right_Bullet[i].y, right_Bullet[i].x, ' ');
         
-        left_bullen[i].y = -1;
-        left_bullen[i].x = -1;
-        right_bullen[i].y = -1;
-        right_bullen[i].x = -1;
+        left_Bullet[i].y = -1;
+        left_Bullet[i].x = -1;
+        right_Bullet[i].y = -1;
+        right_Bullet[i].x = -1;
     }
     clear();
     _key_selection();
@@ -551,7 +547,7 @@ void startGame()
     drawMap();
     createSnake();
     refresh();
-    bullen_position_set();
+    bullet_Position_set();
     
     if(set_ticker(move_time) == -1)      /*timer설정*/
         perror("set_ticker");
@@ -559,7 +555,7 @@ void startGame()
     char key;
     while(1) {
         timeout(50); //70ms 동안 getch() block시키고 읽을 것이 없으면 return -1을 하고 getch() 종료
-        bullen_hit();
+        Bullet_hit();
         key = getch();
         setDirection(key);
         clear();
@@ -567,7 +563,7 @@ void startGame()
         moveSnake();
         createSnake();
         drawFood();
-        draw_bullen();
+        draw_Bullet();
         
         refresh();
     }
@@ -595,7 +591,7 @@ int main()
 {
     signal(SIGINT, sig_func);  //for test
     //signal(SIGALRM, SIG_IGN);
-    signal(SIGALRM, bullen_move);            /*SIGALRM을 받으면 draw_bullen를 호출*/
+    signal(SIGALRM, bullet_move);            /*SIGALRM을 받으면 draw_Bullet를 호출*/
     
     initGame();
 
