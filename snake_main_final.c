@@ -136,8 +136,10 @@ void bullet_move(){	//buelln move
 void Bullet_hit(){		//if Bullet hit snake then showloose
 	
 	for(int i = 0; i < SNAKE_LENGTH; i++){
-		if((mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == LEFT_BULLET_CHAR || (mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == RIGHT_BULLET_CHAR )
+        if((mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == LEFT_BULLET_CHAR || (mvinch(user_snake[i].y, user_snake[i].x) & A_CHARTEXT) == RIGHT_BULLET_CHAR ) {
             showLoose();
+            return;
+        }
 	}
 }
 
@@ -168,7 +170,7 @@ char *title[] = {
     "    #####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n"
 };
 
-WINDOW *menu_menus, *menu_title;
+WINDOW *menu_menus, *menu_title, *loose_win;
 WINDOW *menu_pictur;
 
 int n_menus = sizeof(menus) / sizeof(char *);
@@ -398,7 +400,7 @@ void FoodPosition()
             x = rand()%col;
             y = rand()%row;
 
-            while((mvinch(y, x) & A_CHARTEXT) == WALL_CHAR) {
+            while((mvinch(y, x) & A_CHARTEXT) == WALL_CHAR || (y == 0)) {
                 x = rand()%col;
                 y = rand()%row;
             }
@@ -464,11 +466,13 @@ void moveSnake()
     //장애물에 닿으면 게임 종료
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == WALL_CHAR) {
         showLoose();
+        return;
     }
     
     //총알에 닿으면 종료
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == LEFT_BULLET_CHAR || (mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == RIGHT_BULLET_CHAR) {
         showLoose();
+        return;
     }
 
     mvaddch(user_snake[0].y, user_snake[0].x, SNAKE_CHAR);
@@ -501,7 +505,8 @@ void setDirection(char c)
 }
 
 
-void showLoose() {
+void showLoose()
+{
     clear();
     mvprintw(row/2, col/2-strlen(LOST_MSG)/2, LOST_MSG);
     refresh();
@@ -540,7 +545,6 @@ void sig_func()
 void startGame()
 {
     pthread_t food_thread;
-    pthread_create(&food_thread, NULL, FoodPosition,NULL);
     
     clear();
     initSnakeLocation();
@@ -548,6 +552,8 @@ void startGame()
     createSnake();
     refresh();
     bullet_Position_set();
+    
+    pthread_create(&food_thread, NULL, FoodPosition,NULL);  //map먼저 그리고 음식 생성해야함
     
     if(set_ticker(move_time) == -1)      /*timer설정*/
         perror("set_ticker");
@@ -595,21 +601,19 @@ int main()
     
     initGame();
 
-    //s:main menu
-    /*_init_main_menu();*/
+    //execute main menu
     _key_selection();
-//    clrtoeol();
-
-    //e:main menu
-
-
 
     return 0;
 }
 
 //추가해야될 기능
-//1. 음식 시간 마다 생성 후 시간되면 제거
-//2. 컴퓨터 뱀 추가
-//3. 메인메뉴 추가
-//4. 시그널로 방향 제어?
-//5. 길이가 길어질수록 speedup
+//1. 음식 시간 마다 생성 후 시간되면 제거  ok
+//2. 총알 추가  ok
+//3. 메인메뉴 추가    ok
+//4. 게임 진행 중에 누적 점수 메인화면에 표시
+
+//문제점
+//1. 음식 위치 변경 속도 일정하지 않음 ???
+//2. loose화면 고정 안됨
+//3. 음식 위치 스코어 부분에 생김   ok
