@@ -60,11 +60,11 @@ char *menus[] = {
     "Exit",
 };
 char *title[] = {
-    "    #####      ##   #         #       #  ##     ####            ###          #       #     #     #### \n",
-    "    #          # #  #        # #      # ##      #              #            # #      ##   ##     #    \n",
-    "    #####      #  # #       #####     ##        ####           #  ##       #####     # # # #     #### \n",
-    "        #      #   ##      #    #     # ##      #              #   #      #    #     #  #  #     #    \n",
-    "    #####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n"
+    "    \t\t\t\t\t\t#####      ##   #         #       #  ##     ####            ###          #       #     #     #### \n",
+    "    \t\t\t\t\t\t#          # #  #        # #      # ##      #              #            # #      ##   ##     #    \n",
+    "    \t\t\t\t\t\t#####      #  # #       #####     ##        ####           #  ##       #####     # # # #     #### \n",
+    "    \t\t\t\t\t\t    #      #   ##      #    #     # ##      #              #   #      #    #     #  #  #     #    \n",
+    "    \t\t\t\t\t\t#####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n",
 };
 int n_menus = sizeof(menus) / sizeof(char *);
 int n_title = sizeof(title) / sizeof(char *);
@@ -380,14 +380,18 @@ void drawMap()/////////////////////////////////////////////////////////////////
         mvaddch((row/4)*3, i, WALL_CHAR);
     }
 
-    //왼쪽 상단 사각형 장애물
+    
     for (int i = 15; i < 25; i++) {
-        mvaddch(row/5, i, WALL_CHAR);   //(y,x,char)
-        mvaddch((row/5)*2, i, WALL_CHAR);
+        mvaddch((row/3)*2, i, WALL_CHAR);   //(y,x,char)
+        mvaddch((row/5)*3, i, WALL_CHAR);
     }
-    for (int i = 8; i < 14; i++) {
+    for (int i = 8; i < 25; i++) {
         mvaddch(i, row/3, WALL_CHAR);
         mvaddch(i, (row/3)*2, WALL_CHAR);
+    }
+    for (int i = 8; i < 25; i++) {
+        mvaddch(i, (col/6)*5, WALL_CHAR);
+        mvaddch(i, (col/6)*4, WALL_CHAR);
     }
 
 }
@@ -464,7 +468,7 @@ void snakeHeadMove()
 void moveSnake()
 {
     snakeHeadMove();
-
+    
     //장애물에 닿으면 게임 종료
     if((mvinch(user_snake[0].y, user_snake[0].x) & A_CHARTEXT) == WALL_CHAR) {
         showLoose();
@@ -514,8 +518,8 @@ void showLoose()
     mvprintw(row/2, col/2-strlen(LOST_MSG)/2, LOST_MSG);
     refresh();
     pthread_cancel(food_thread);
-    //sleep(5);
-    for(int i=0; i<1000000000; i++);
+    pthread_join(food_thread, NULL);
+    sleep(5);
 
     scoreArr[n_games] = score;
     n_games++;
@@ -523,7 +527,11 @@ void showLoose()
     Bullet_stage = 1;
     score = 0;
     move_time = 80;
-    //수정::main 화면부터 다시 실행
+
+    for(int i=0; i < SNAKE_LENGTH; i++) {
+           user_snake[i].x = -1;
+           user_snake[i].y = -1;
+    }
     for(int i=0; i<Bullet_stage; i++) {
         mvaddch(left_Bullet[i].y, left_Bullet[i].x, ' ');
         mvaddch(right_Bullet[i].y, right_Bullet[i].x, ' ');
@@ -534,7 +542,7 @@ void showLoose()
         right_Bullet[i].x = -1;
     }
     clear();
-    _key_selection();
+    _key_selection();   //수정::main 화면부터 다시 실행
     refresh();
     endwin();
     exit(0);
