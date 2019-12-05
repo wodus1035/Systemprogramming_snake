@@ -23,6 +23,17 @@
 
 int scoreArr[20];
 int n_games = 0;
+int user_snake_dir;     //user snake's direction
+int row, col;
+int user_snake_length;
+int score = 0;
+int move_time = 80;
+int Bullet_stage = 1;
+int startx;
+int starty;
+int max_x;
+int max_y;
+
 //snake의 body 좌표 구조체
 typedef struct SnakeBody_{
     int x;
@@ -44,24 +55,52 @@ Food food[FOOD_MAX];
 Bullet left_Bullet[MAX_STAGE];
 Bullet right_Bullet[MAX_STAGE];
 
+char *menus[] = {
+    "START",
+    "Exit",
+};
+char *title[] = {
+    "    #####      ##   #         #       #  ##     ####            ###          #       #     #     #### \n",
+    "    #          # #  #        # #      # ##      #              #            # #      ##   ##     #    \n",
+    "    #####      #  # #       #####     ##        ####           #  ##       #####     # # # #     #### \n",
+    "        #      #   ##      #    #     # ##      #              #   #      #    #     #  #  #     #    \n",
+    "    #####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n"
+};
+int n_menus = sizeof(menus) / sizeof(char *);
+int n_title = sizeof(title) / sizeof(char *);
 
-int user_snake_dir;     //user snake's direction
-int row, col;
-int user_snake_length;
-int score = 0;
-
+WINDOW *menu_menus, *menu_title, *loose_win;
+WINDOW *menu_pictur;
+pthread_t food_thread;
 
 void showLoose(void);
 void check(void);
 void startGame();
+void _init_menu_menus();
+void _init_menu_title();
+void _init_menu_pictur();
+void _imp_menu_menus(WINDOW *menu_menus, int select_);
+void _imp_menu_pictur(WINDOW *menu_pictur, int select_);
+void _imp_menu_title(WINDOW *menu_title, int select_);
+void initGame();
+void _key_selection();
+void bullet_move();
 
+
+int main(int ac, char* av[])
+{
+    signal(SIGALRM, bullet_move);
+
+    initGame();
+
+    //execute main menu
+    _key_selection();
+
+    return 0;
+}
 
 
 //s: Bullet configuration
-
-int move_time = 80;
-int Bullet_stage = 1;
-
 void bullet_Position(){ 	//Bullet_postion set_up
     int y;
 
@@ -124,7 +163,7 @@ void bullet_move(){	//buelln move
                 right_Bullet[i].x = -1;
             }
 
-            score = score + 100;//score///////////////////for///////Bullet
+            score = score + 100;
             printw("score: %d", score);
 
             //새로운 총알 생성
@@ -149,37 +188,6 @@ void Bullet_hit(){		//if Bullet hit snake then showloose
 
 
 //s:main menu
-
-int startx;
-int starty;
-int max_x;
-int max_y;
-char *menus[] = {
-    "START",
-    "Exit",
-};
-char *title[] = {
-    "    #####      ##   #         #       #  ##     ####            ###          #       #     #     #### \n",
-    "    #          # #  #        # #      # ##      #              #            # #      ##   ##     #    \n",
-    "    #####      #  # #       #####     ##        ####           #  ##       #####     # # # #     #### \n",
-    "        #      #   ##      #    #     # ##      #              #   #      #    #     #  #  #     #    \n",
-    "    #####      #    #     #     #     #  ##     ####            ###      #     #     #     #     #### \n"
-};
-
-WINDOW *menu_menus, *menu_title, *loose_win;
-WINDOW *menu_pictur;
-
-int n_menus = sizeof(menus) / sizeof(char *);
-int n_title = sizeof(title) / sizeof(char *);
-
-void _init_menu_menus();
-void _init_menu_title();
-void _init_menu_pictur();
-
-void _imp_menu_menus(WINDOW *menu_menus, int select_);
-void _imp_menu_pictur(WINDOW *menu_pictur, int select_);
-void _imp_menu_title(WINDOW *menu_title, int select_);
-
 void _key_selection(){
     int select_ =1;
     int selection =0;
@@ -281,7 +289,7 @@ void _imp_menu_pictur(WINDOW *menu_pictur, int select_)
         }
     }
     for(int i=0; i<n_games; i++){
-        mvwprintw(menu_pictur, y, x, "%d : score : %d", i+1, scoreArr[i]);
+        mvwprintw(menu_pictur, y, x, "\t\t%d : score : %d", i+1, scoreArr[i]);
         ++y;
     }
 
@@ -299,7 +307,6 @@ void _imp_menu_title(WINDOW *menu_title, int select_)
     }
     wrefresh(menu_title);
 }
-
 //e:main menu
 
 void initGame()
@@ -375,18 +382,17 @@ void drawMap()/////////////////////////////////////////////////////////////////
 
     //왼쪽 상단 사각형 장애물
     for (int i = 15; i < 25; i++) {
-        mvaddch(row/6, i, WALL_CHAR);   //(y,x,char)
-        mvaddch((row/6)*2, i, WALL_CHAR);
+        mvaddch(row/5, i, WALL_CHAR);   //(y,x,char)
+        mvaddch((row/5)*2, i, WALL_CHAR);
     }
     for (int i = 8; i < 14; i++) {
-        mvaddch(i, row/6+8, WALL_CHAR);
-        mvaddch(i, (row/6)*2+10, WALL_CHAR);
+        mvaddch(i, row/3, WALL_CHAR);
+        mvaddch(i, (row/3)*2, WALL_CHAR);
     }
 
 }
 
 
-//food
 void FoodPosition()
 {
     int x,y;
@@ -482,6 +488,7 @@ void moveSnake()
     }
 }
 
+
 void setDirection(char c)
 {
     switch(c) {
@@ -506,8 +513,9 @@ void showLoose()
     clear();
     mvprintw(row/2, col/2-strlen(LOST_MSG)/2, LOST_MSG);
     refresh();
-
-    sleep(5);
+    pthread_cancel(food_thread);
+    //sleep(5);
+    for(int i=0; i<1000000000; i++);
 
     scoreArr[n_games] = score;
     n_games++;
@@ -533,18 +541,8 @@ void showLoose()
 }
 
 
-//temp
-//for test
-void sig_func()
-{
-    endwin();
-    exit(1);
-}
-
 void startGame()
 {
-    pthread_t food_thread;
-
     clear();
     initSnakeLocation();
     drawMap();
@@ -590,29 +588,3 @@ int set_ticker(int n_msecs)
 
     return setitimer(ITIMER_REAL, &new_timeset, NULL);
 }
-
-
-int main(int ac, char* av[])
-{
-    signal(SIGINT, sig_func);  //for test
-    //signal(SIGALRM, SIG_IGN);
-    signal(SIGALRM, bullet_move);            /*SIGALRM을 받으면 draw_Bullet를 호출*/
-
-    initGame();
-
-    //execute main menu
-    _key_selection();
-
-    return 0;
-}
-
-//추가해야될 기능
-//1. 음식 시간 마다 생성 후 시간되면 제거  ok
-//2. 총알 추가  ok
-//3. 메인메뉴 추가    ok
-//4. 게임 진행 중에 누적 점수 메인화면에 표시
-
-//문제점
-//1. 음식 위치 변경 속도 일정하지 않음 ???
-//2. loose화면 고정 안됨
-//3. 음식 위치 스코어 부분에 생김   ok
